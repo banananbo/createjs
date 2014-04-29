@@ -14,7 +14,6 @@ window.onload=function(){
 		this.graphics.beginFill(color).beginStroke('#DDD');
 		this.graphics.drawRect(0,0,sizeX,sizeY);
 	}
-	
 	Tile.prototype = new createjs.Shape();
 	
 	function MainContainer(tileWidth,tileHeight,xTileNum,yTileNum){
@@ -31,13 +30,64 @@ window.onload=function(){
 				var t = new Tile('#EFEFEF',this.tileWidth,this.tileHeight,i,j,this);
 				t.x = i*this.tileWidth;
 				t.y = j*this.tileHeight;
-				t.addEventListener('click',onGroundClick);
+//				t.addEventListener('click',this.onTileClick);
+				t.on("click",this.onTileClick,this,false,{},false);
 				this.tiles[i][j] = t;
 				this.addChild(t);
 			}
 		}
 	}
 	MainContainer.prototype = new createjs.Container();
+	MainContainer.prototype.onTileClick = function(e){
+		this.dispatchEvent({type:"tileClick",clickedTile:e.target});
+	}
+	
+	function Chara(){
+		// 現在の目的地　Point
+		this.distination = null;
+		this.rootsTileCue = [];
+		
+		var data = {};
+		data.images = ['img/002.png'];
+		data.frames = {width:82,height:109,regX:41,regY:55};
+		data.animations = {walk:{
+			frames:[0,0,1,2,2,3],
+			speed:0.5
+		}
+		};
+		var penguin = new createjs.SpriteSheet(data);
+		var penAni = new createjs.Sprite(penguin,'walk');
+		penAni.y -= 30;
+		this.addChild(penAni);
+	}
+	Chara.prototype = new createjs.Container();
+	Chara.prototype.update = function(){
+		// 移動等の処理を行う
+		if(this.destination){
+			console.log('move');
+			this.x += (this.destination.x-this.x)*0.1;
+			this.y += (this.destination.y-this.y)*0.1;
+			this.scaleX = ((this.destination.x-this.x)>0)?-1:1;
+			
+			if(Math.abs(this.destination.x-this.x)<5 && Math.abs(this.destination.y-this.y)<5){
+				// arrived
+				man.x = this.destination.x;
+				man.y = this.destination.y;
+				console.log('ariived '+man.x + ','+man.y);
+				//man.pause();
+				this.destination = null;
+			}
+			
+		}else{
+			if(this.rootsTileCue.length>0){
+				//man.start;
+				this.currentTile = this.rootsTileCue.pop();
+				this.destination = this.currentTile.localPoint;
+				
+				console.log(this.destination);
+			}
+		}
+	}
 	
 	// combination with DOM
 	var canvas = document.getElementById('main_cvs');
@@ -46,21 +96,19 @@ window.onload=function(){
 	var stageWidth = canvas.width,
 		stageHeight = canvas.height;
 	var stage = new createjs.Stage(canvas);
-	var destination;// = new createjs.Point(100,100);
+	var destination;
 	var roots = [];
 	var currentTile;
-	
-	var tiles;
-	var countX;
-	var countY;
-	var tileX = 50;
-	var tileY = 50;
 	
 	var man;
 	
 	// make container
-//	var main_container = new createjs.Container();
-	var main_container = new MainContainer(50,50,10,6);
+	var main_container = new MainContainer(50,50,30,6);
+	main_container.addEventListener("tileClick",contTileClickedHandler);
+	
+	function contTileClickedHandler(e){
+		goToTile(e.clickedTile);
+	}
 	
 	init();
 	
@@ -68,32 +116,7 @@ window.onload=function(){
 		main_container.x = 10;
 		main_container.y = 50;
 		stage.addChild(main_container);
-
-		// make tiles
-/*		tiles = [];
-		countX = 10;
-		countY = 6;
-		
-		for(var i=0;i<countX;i++){
-			tiles[i] = [];
-			for(var j=0;j<countY;j++){
-				var t = new Tile('#EFEFEF',tileX,tileY,i,j);
-				t.x = i*tileX;
-				t.y = j*tileY;
-				t.addEventListener('click',onGroundClick);
-				tiles[i][j] = t;
-				main_container.addChild(t);
-			}
-		}
-		
-		function makeTile(color,sizeX,sizeY){
-			var tile = new createjs.Shape();
-			tile.graphics.beginFill(color).beginStroke('#DDD');
-			tile.graphics.drawRect(0,0,sizeX,sizeY);
-			return tile;
-		}
-*/		
-		man = createPenguin();
+		man = new Chara();
 		main_container.addChild(man);
 		man.x = 50;
 		man.y = 100;
@@ -106,84 +129,28 @@ window.onload=function(){
 	
 	
 	function onGroundClick(e){
-		// destination = ground.globalToLocal(e.stageX,e.stageY);
-		// destination = new createjs.Point(e.stageX,e.stageY);
-		// destination = e.target;
 		goToTile(e.target);
 	}
 	
 	function goToTile(destTile){
+		console.log(destTile);
 		//cancel current roots 
-		roots = [];
+		man.rootsTileCue = [];
 		// calcurate roots
-		if(currentTile){
-			roots.push(destTile);
+		if(man.currentTile){
+			man.rootsTileCue.push(destTile);
 			// x positions
-			roots.push(main_container.tiles[destTile.posX][currentTile.posY]);
+			console.log(man.currentTile);
+			man.rootsTileCue.push(main_container.tiles[destTile.posX][man.currentTile.posY]);
 		}else{
-			roots.push(destTile);
+			
+			man.rootsTileCue.push(destTile);
 		}
-	}
-	
-	function createPenguin(){
-		var data = {};
-		data.images = ['img/002.png'];
-		data.frames = {width:82,height:109,regX:41,regY:55};
-		data.animations = {walk:{
-			frames:[0,0,1,2,2,3],
-			speed:0.5
-		}
-		};
-		var penguin = new createjs.SpriteSheet(data);
-		var penAni = new createjs.Sprite(penguin,'walk');
-		penAni.y -= 30;
-		var container = new createjs.Container(penAni); // ADJ of image position
-		container.addChild(penAni);
-		return container;
 	}
 	
 	function onTick(){
-		// man.x--;
-		// main_container.x+=2;
-		if(destination){
-			
-			moveToPoint(man,destination.localPoint);
-			
-			if(Math.abs(destination.localPoint.x-man.x)<5 && Math.abs(destination.localPoint.y-man.y)<5){
-				// arrived
-				man.x = destination.localPoint.x;
-				man.y = destination.localPoint.y;
-				console.log('ariived '+man.x + ','+man.y);
-				//man.pause();
-				destination = null;
-			}
-		}else{
-			if(roots.length>0){
-				//man.start;
-				destination = roots.pop();
-				currentTile = destination;
-				console.log('goto '+ destination.myPoint.x + ','+destination.myPoint.y);
-			}
-		}
 		stage.update();
-		// sizing
-		//canvas.clientHeight = {height:wrapper.clientHeight};
-		//canvas.clientWidth = {width:wrapper.clientWidth};
+		man.update();
 	}
-	
-	// to be mans method
-	function moveToPoint(man,p){
-		man.x += (p.x-man.x)*0.1;
-		man.y += (p.y-man.y)*0.1;
-		man.scaleX = ((p.x-man.x)>0)?-1:1;
-	}
-	
-	function createBall(radius,color,nX,nY){
-		var ball = new createjs.Shape();
-		ball.graphics.beginFill(color);
-		ball.graphics.drawCircle(0,0,radius);
-		ball.x = nX;
-		ball.y = nY;
-		return ball;
-	}
+
 }
