@@ -9,11 +9,23 @@ function Tile(color,sizeX,sizeY,xnum,ynum,main_container){
 	this.posX = xnum;
 	this.posY = ynum;
 	
+	this.NORMAL_COLOR = color;
+	this.UP_COLOR = '#FDD';
+	
 	this.myPoint = main_container.localToGlobal(this.posX*this.sizeX+this.sizeX/2,this.posY*this.sizeY+this.sizeY/2); // center of tile
 	this.localPoint = new createjs.Point(this.posX*this.sizeX+this.sizeX/2,this.posY*this.sizeY+this.sizeY/2);
 	
-	this.graphics.beginFill(color).beginStroke('#DDD');
-	this.graphics.drawRect(0,0,sizeX,sizeY);
+	
+	
+	this.on('rollOver',function(e){console.log('over')});
+	
+//	updateDisplay();
+//	function updateDisplay(){
+		this.graphics.beginFill(color).beginStroke('#ddd');
+		this.graphics.drawRect(0,0,sizeX,sizeY);
+//	}
+	
+	
 }
 Tile.prototype = new createjs.Shape();
 
@@ -23,6 +35,10 @@ function MainContainer(tileWidth,tileHeight,xTileNum,yTileNum){
 	this.tileHeight = tileHeight;
 	this.xTileNum = xTileNum;
 	this.yTileNum = yTileNum;
+	
+	// size
+	this.tileAreaWidth = this.tileWidth*this.xTileNum;
+	this.tileAreaHeight = this.tileHeight*this.yTileNum;
 	
 	// make tiles
 	for(var i=0;i<this.xTileNum;i++){
