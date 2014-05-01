@@ -23,6 +23,8 @@ window.onload=function(){
 		createjs.Ticker.setFPS(30);
 		createjs.Ticker.addEventListener("tick", onTick);
 		
+		stage.enableMouseOver(10);
+		
 		adjustContainerPosition();
 		
 		function contTileClickedHandler(e){
@@ -37,7 +39,6 @@ window.onload=function(){
 			if(man.currentTile){
 				man.rootsTileCue.push(destTile);
 				// x positions
-				console.log(man.currentTile);
 				man.rootsTileCue.push(main_container.tiles[destTile.posX][man.currentTile.posY]);
 			}else{
 				man.rootsTileCue.push(destTile);
@@ -49,8 +50,6 @@ window.onload=function(){
 			canvas.height = window.innerHeight;
 			stage.update();
 			man.update();
-			
-			console.log(man.getBounds());
 		}
 		
 		function adjustContainerPosition(){
