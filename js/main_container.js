@@ -39,6 +39,7 @@ function Tile(color,sizeX,sizeY,xnum,ynum,main_container){
 Tile.prototype = new createjs.Shape();
 
 function MainContainer(tileWidth,tileHeight,xTileNum,yTileNum){
+	this.initialize();
 	this.tiles = [];
 	this.tileWidth = tileWidth;
 	this.tileHeight = tileHeight;
@@ -64,6 +65,11 @@ function MainContainer(tileWidth,tileHeight,xTileNum,yTileNum){
 	}
 }
 MainContainer.prototype = new createjs.Container();
+MainContainer.prototype.Container_initialize = MainContainer.prototype.initialize;
+MainContainer.prototype.initialize = function(arg){
+	this.Container_initialize();
+	this._arg = arg;
+}
 MainContainer.prototype.onTileClick = function(e){
 	this.dispatchEvent({type:"tileClick",clickedTile:e.target});
 };
