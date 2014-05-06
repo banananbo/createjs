@@ -28,7 +28,6 @@ function Tile(color,sizeX,sizeY,xnum,ynum,main_container){
 	this.on('rollover',this.onRollover,this);
 	this.on('rollout',this.onRollout,this);
 	
-
 	this.updateDisplay = function(){
 		this.graphics.clear();
 		this.graphics.beginFill(this.color).beginStroke('#ddd');
@@ -68,3 +67,30 @@ MainContainer.prototype = new createjs.Container();
 MainContainer.prototype.onTileClick = function(e){
 	this.dispatchEvent({type:"tileClick",clickedTile:e.target});
 };
+MainContainer.prototype.rootsToTile=function(start,end){
+	var starttile = this.tiles[start.posX][start.posY];
+	var roots = [];
+	// move X 
+	if(start.posX<end.posX){
+		for(var i=start.posX+1;i<=end.posX;i++){
+			roots.push(this.tiles[i][start.posY]);
+		}
+	}else{
+		for(var i=start.posX-1;i>=end.posX;i--){
+			roots.push(this.tiles[i][start.posY]);
+		}
+	}
+	
+	// move Y 
+	if(start.posY<end.posY){
+		for(var j=start.posY+1;j<=end.posY;j++){
+			roots.push(this.tiles[end.posX][j]);
+		}
+	}else{
+		for(var j=start.posY-1;j>=end.posY;j--){
+			roots.push(this.tiles[end.posX][j]);
+		}
+	}
+	
+	return roots;
+}
